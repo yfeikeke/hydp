@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>行业大盘</title>
+    <meta charset="UTF-8" />
+    <meta name="keywords" content="keyword1,keyword2,keyword3">
+    <meta name="description" content="this is my page">
+    <meta name="content-type" content="text/html; charset=UTF-8">
+    <link href="../../js/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../js/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="../../js/bootstrap/table/bootstrap-table.css" rel="stylesheet">
+    <link href="../../js/bootstrap/datetimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet">
+    <link href="../css/lm.css" rel="stylesheet">
+    <style>
+    .one{padding: 0 15px;line-height: 1.65;color: red;}
+    .lmdata{z-index: 100;position: absolute;top: 52px;left: 186px;display: none;}
+    </style>
+</head>
+<body>
+<div style="padding:15px;">
+  <div class="title panel-body panel-default" style="padding:0;">
+    <div class="panel panel-default" style="border-color:#fff;">
+      <div class="panel-body" style="padding:0;">
+        <form id="formSearch" class="form-horizontal">
+          <label class="control-label col-sm-1" style="font-weight: normal;" >类目：</label>
+          <div class="col-sm-2">
+            <input class="form-control" id="category" value='' data-pid='' style="width:180px;font-weight:normal;" placeholder="请选择类目"/>
+          </div>
+          <label class="control-label col-sm-1" style="font-weight: normal;" >渠道：</label>
+          <div class="col-sm-2">
+            <select class="ditch form-control" id="cancalGoodsDitch1" style="width:180px;" onchange="wrapObj.changeTable()">
+              <option value="all">全部</option>
+              <option value="taobao">淘宝</option>
+              <option value="tmall">天猫</option>
+            </select>
+          </div>
+          <label class="control-label col-sm-1" style="font-weight: normal;" >月：</label>
+          <div class="col-sm-2" style="padding-left: 4px;">
+              <input class="form-control dateFormatMonth" id="createStart" style="width:180px;font-weight:normal;"  onchange="wrapObj.changeTable()" placeholder="请选择时间"/>
+          </div> 
+        </form>
+      </div>
+    </div>
+  </div>
+  <table id="mainTable" class="table table-striped  table-hover table-responsive"></table>
+  <section class="lmdata">
+      <div class="contains">
+        <div class="wareSort clearfix">
+          <ul id="sort1"></ul>
+          <ul id="sort2" style="display: none;"></ul> 
+          <ul id="sort3" style="display: none;"></ul>
+        </div>
+        <button class="btn btn-success oklm" data-id='' data-name='' style="margin-bottom: 10px;margin-left: 210px;">确认</button>
+        <button class="btn btn-warning canclelm" style="margin-bottom: 10px;margin-left: 5px;">取消</button>
+      </div>
+  </section>
+</div>
+<div class="modal fade" id="topModal">
+    <div class="modal-dialog" style=width:400px;>
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">子类目</h4>
+            </div>
+            <div class="modal-body">
+                <select class="ditch form-control" id="lm_value">
+                <!--子类目展示-->
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary songOK">确认</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div>
+<div class="modal fade" id="Modal">
+    <div class="modal-dialog" style=width:1000px;height:450px;>
+        <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title" id="myModalLabel">趋势</h4>
+              <span class="songpid" style="display:none;"></span>
+              <span class="songcid" style="display:none;"></span>
+            </div>
+            <div class="modal-body" style="height: 450px;">
+                <section class="col-md-12" style="padding:0 5px;">
+                  <div class="title panel-body panel-default" style="padding:0;">
+                    <div class="panel panel-default" style="border-color:#fff;">
+                      <div class="panel-body" style="padding:0;">
+                        <form id="formSearch" class="form-horizontal">
+                            <label class="control-label col-sm-1" style="font-weight: normal;" >渠道：</label>
+                            <div class="col-sm-2">
+                              <select class="ditch form-control" id="ditchecharts" style="width:180px;">
+                                <option value="all">全部</option>
+                                <option value="taobao">淘宝</option>
+                                <option value="tmall">天猫</option>
+                              </select>
+                            </div>
+                          <label class="control-label col-sm-1" style="font-weight: normal;" >月：</label>
+                          <div class="col-sm-4" style="padding-left: 4px;">
+                              <input class="form-control dateFormatMonth" id="start" style="width:80px;font-weight:normal;float:left;" placeholder="请选择时间"/><span style="float: left;margin: 0 5px;height: 40px;line-height: 35px;">至</span>
+                              <input class="form-control dateFormatMonth" id="end" style="width:80px;font-weight:normal;float:left;" placeholder="请选择时间"/>
+                          </div> 
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="main" style="width:900px;height: 400px;"></div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div>
+<script src="../js/jquery-2.1.1.min.js"></script>
+<script src="http://echarts.baidu.com/gallery/vendors/echarts/echarts.min.js"></script>
+<script src="../../js/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="../../js/bootstrap/table/bootstrap-table.js"></script>
+<script src="../../js/bootstrap/table/locale/bootstrap-table-zh-CN.js"></script>
+<script src="../../js/bootstrap/datetimepicker/bootstrap-datetimepicker.js"></script>
+<script src="../../js/bootstrap/datetimepicker/locales/bootstrap-datetimepicker.zh-CN.js" charset="UTF-8"></script>
+<script src="../../survey/js/common.js" ></script>
+<script src="../js/newRepleishment/repleishCommon.js?rev=ce506c6c3f798d35b259b50a157f32c6"></script>
+<script src="../js/hydp/industryMarket.js?rev=3502077ecca086c205aa429152bb742e"></script> 
+</body>
+</html>

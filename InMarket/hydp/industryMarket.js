@@ -107,6 +107,7 @@ var maochao='/maochao/survey/';
             cardView: false,     //是否显示详细视图
             striped: true,      //是否显示行间隔色
             cache: false,      //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+            sortable: true,
             pagination: true,     //是否显示分页（*）
             pageNumber: 1,      //初始化加载第一页，默认第一页
             pageSize: 10000,      //每页的记录行数（*）
@@ -118,15 +119,31 @@ var maochao='/maochao/survey/';
             showRefresh: false,	//刷新
             maintainSelected: true,		//设置为 true 在点击分页按钮或搜索按钮时，将记住checkbox的选择项
             contentType: "application/x-www-form-urlencoded",
-            onLoadSuccess: function(value, row, index,data){  //加载成功时执行
-               console.log(data);
-              },  
+            responseHandler: function(data){
+                var index2All = 0,index9All=0;
+                var array = new Array();
+                if(data.length>0){
+                    //求总量
+                    for(var i=0;i<data.length;i++){
+                        index2All+=Number(data[i].index2);
+                        index9All+=Number(data[i].index9);
+                    }
+                    //赋值处理求百分比
+                    for(var i=0;i<data.length;i++){
+                        array.push({cid:data[i].cid,index2:data[i].index2,index2pce:(Number(data[i].index2)/index2All*100).toFixed(2),index9:data[i].index9,index9pec:(Number(data[i].index9)/index9All*100).toFixed(2),name:data[i].name});
+                    }
+                }
+                console.log(array);
+
+                return array;
+            },
             columns: [
                 {
                     field:'name',
                     title:'类目名称',
                     align:'center',
-                    valign:'middle'
+                    valign:'middle',
+                    sortable: true
                 },{
                     field:'index2',
                     title:'销量',
@@ -134,15 +151,17 @@ var maochao='/maochao/survey/';
                         return toThousands(row.index2,2);
                     },
                     align:'center',
-                    valign:'middle'
+                    valign:'middle',
+                    sortable: true
                 },{
-                    field:'',
+                    field:'index2pce',
                     title:'销量行业占比',
-                    formatter :function(value, row, index,data){
-                        return allnumber(data,row.index2)+'%';
+                    formatter :function(value, row, index){
+                        return row.index2pce+'%';
                     },
                     align:'center',
-                    valign:'middle'
+                    valign:'middle',
+                    sortable: true
                 },{
                     field:'index9',
                     title:'销售额',
@@ -150,15 +169,17 @@ var maochao='/maochao/survey/';
                         return toThousands(row.index9,2);
                     },
                     align:'center',
-                    valign:'middle'
+                    valign:'middle',
+                    sortable: true
                 },{
-                    field:'',
+                    field:'index9pec',
                     title:'销售额行业占比',
-                    formatter :function(value, row, index,data){
-                        return allnumber1(data,row.index9)+'%';
+                    formatter :function(value, row, index){
+                        return row.index9pec+'%';
                     },
                     align:'center',
-                    valign:'middle'
+                    valign:'middle',
+                    sortable: true
                 },{
                     field:null,
                     title:'操作',
@@ -184,6 +205,12 @@ var maochao='/maochao/survey/';
                 $mainTable.find('th[data-field=goodsName]').css('min-width','150px')
             }
         });
+    }
+    //百分比排序处理
+    function percentSort(a, b) {
+        var value_a = a.substr(0, a.length-1)
+        var value_b = b.substr(0, b.length-1)
+        return value_b-value_a;
     }
     //销量占比处理
     function allnumber(data,sale){
@@ -227,8 +254,8 @@ var maochao='/maochao/survey/';
                 province.push(data[i]);
             }
         }
-        $category.val(province[0].name);
-        $category.attr('data-pid',province[0].cid);
+        $category.val("全部");
+        $category.attr('data-pid',1);
         city.length = 0;
         for(var i=0;i<data.length;i++){
             if(data[i].pid == $category.attr('data-pid')){

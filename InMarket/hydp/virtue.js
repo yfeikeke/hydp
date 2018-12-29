@@ -2,6 +2,7 @@ var wrapObj = {
   changeTable:function(){}
 };
 var maochao='/maochao/';
+var btnStr = '<div class="sort"><i class="bot subsort"></i><i class="top subsort"></i></div>';
 (function(){
     var $cancalDitch1 = $('#cancalGoodsDitch1'),$createStart = $('#createStart'),$category = $('#category');
     var $mainTable = $('#mainTable');
@@ -9,6 +10,10 @@ var maochao='/maochao/';
     var rows = [];
     var lmdataAll = [];
     var province = [],city = [],district = [];
+    var sort = {
+        field:'',
+        sorting:''
+    };
     function currentMonth(time){
         if(time){
             return time;
@@ -86,7 +91,9 @@ var maochao='/maochao/';
             pageNumber: (params.offset / params.limit) + 1,  //页码
             id : $category.attr('data-pid'),
             dataDate:time[0]+time[1],
-            channel : $cancalDitch1.val()
+            channel : $cancalDitch1.val(),
+            sort:sort.field,
+            direction:sort.sorting//升序  asc  降序 desc
         };
     };
 
@@ -101,7 +108,7 @@ var maochao='/maochao/';
 
     wrapObj.changeTable = mainTable;
     //主表
-    function mainTable(){
+    function mainTable(fn,field){
         $mainTable.bootstrapTable('destroy');
         $mainTable.bootstrapTable({
           url: maochao + "market/listQBTEffectData",
@@ -128,17 +135,17 @@ var maochao='/maochao/';
           columns: [
             {
                 field:'name', 
-                title:'属性名称',
+                title:'属性名称'+btnStr,
                 align:'center',
                 valign:'middle'
             },{
                 field:'sale',
-                title:'销量',
+                title:'销量'+btnStr,
                 align:'center',
                 valign:'middle'
             },{
                 field:'sale_ratio',
-                title:'销量行业占比',
+                title:'销量行业占比'+btnStr,
                 formatter :function(value, row, index){
                   return (row.sale_ratio*100).toFixed(1)+'%';
                 },
@@ -146,12 +153,12 @@ var maochao='/maochao/';
                 valign:'middle'
             },{
                 field:'sale_amount',
-                title:'销售额',
+                title:'销售额'+btnStr,
                 align:'center',
                 valign:'middle'
             },{
                 field:'sale_amount_ratio',
-                title:'销售额行业占比',
+                title:'销售额行业占比'+btnStr,
                 formatter :function(value, row, index){
                   return (row.sale_amount_ratio*100).toFixed(2)+'%';
                 },
@@ -183,6 +190,29 @@ var maochao='/maochao/';
           }
       });
     }
+     //升序降序
+     function sortF(that){
+        that.find('.subsort').hide();
+        if(sort.sorting === 'desc'){
+            that.find('.top').show();
+        }else{
+            that.find('.bot').show();
+        }
+    }
+    $mainTable.on('click','th',function(){
+        var _this = $(this),
+            field = _this.attr('data-field');
+        if(field === 'name' || field === 'sale' || field === 'sale_ratio' || field === 'sale' || field === 'sale_amount' || field === 'sale_amount_ratio'){
+            $('.subsort').show();
+            if(sort.field && sort.field === field){
+                sort.sorting = sort.sorting === 'asc'? 'desc' : 'asc';
+            }else{
+                sort.field = field;
+                sort.sorting = 'desc';
+            }
+            mainTable(sortF,field);
+        }
+    });
     //销量占比处理
     function allnumber(data,sale){
         var num1 = 0;
@@ -220,6 +250,7 @@ var maochao='/maochao/';
     /*定义三级分类数据*/ 
     //一级分类
     function lmshow(data){
+        console.log(data);
         for(var i=0;i<data.length;i++){
             if(data[i].level == 1){
                 province.push(data[i]);
@@ -455,15 +486,15 @@ var maochao='/maochao/';
             data3.push({'time':timeData[j],value:0});
             data4.push({'time':timeData[j],value:0});
         }
-        data1 = heavy1(data1);
-        data2 = heavy1(data2);
-        data3 = heavy1(data3);
-        data4 = heavy1(data4);
+        data1 = heavy1(data1,'num');
+        data2 = heavy1(data2,'pec');
+        data3 = heavy1(data3,'num');
+        data4 = heavy1(data4,'pec');
         
         var mychartsale= echarts.init(document.getElementById('main'));
         option = {
             title: {
-                text: '折线图堆叠'
+                text: ''
             },
             tooltip: {
                 trigger: 'axis'
@@ -492,6 +523,18 @@ var maochao='/maochao/';
                     name: '金额',
                     type : 'value',
                     scale:true,
+                },
+                {
+                    name: '占比',
+                    type : 'value',
+                    scale:true,
+                    min: 0,
+                    max: 100,        // 计算最大值
+                    interval: Math.ceil(100 / 5),   //  平均分为5份
+                    axisLabel: {  
+                        show: true,    
+                        formatter: '{value} %'  
+                    }
                 }
             ],
             series: [
@@ -499,25 +542,29 @@ var maochao='/maochao/';
                     name:'销量',
                     type:'line',
                     stack: '',
-                    data:data1
+                    data:data1,
+                    yAxisIndex:0
                 },
                 {
                     name:'销量占比',
                     type:'line',
                     stack: '',
-                    data:data2
+                    data:data2,
+                    yAxisIndex:1
                 },
                 {
                     name:'销售额',
                     type:'line',
                     stack: '',
-                    data:data3
+                    data:data3,
+                    yAxisIndex:0
                 },
                 {
                     name:'销售额占比',
                     type:'line',
                     stack: '',
-                    data:data4
+                    data:data4,
+                    yAxisIndex:1
                 }
             ]
         };
@@ -529,8 +576,8 @@ var maochao='/maochao/';
 
     }
 
-    //获取数据去重后赋值,
-    function heavy1(data){
+       //获取数据去重后赋值,
+       function heavy1(data,data1){
         var array = new Array();
         for (var i = 0; i < data.length; i++) {
             for (var j =i+1; j <data.length; ) {
@@ -542,10 +589,15 @@ var maochao='/maochao/';
             }
         }
         //去掉时间
-        for(var m=0;m<data.length;m++){
-            array.push(data[m].value);
+        if(data1 == 'num'){
+            for(var m=0;m<data.length;m++){
+                array.push(data[m].value);
+            } 
+        }else{
+            for(var m=0;m<data.length;m++){
+                array.push(data[m].value*100);
+            }
         }
-        console.log(array)
         return array;
     }
 })();

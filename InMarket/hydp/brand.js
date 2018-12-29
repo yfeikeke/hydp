@@ -1,6 +1,7 @@
 var wrapObj = {
   changeTable:function(){}
 };
+var btnStr = '<div class="sort"><i class="bot subsort"></i><i class="top subsort"></i></div>';
 var maochao='/maochao/';
 (function(){
     var $cancalDitch1 = $('#cancalGoodsDitch1'),$createStart = $('#createStart'),$category = $('#category');
@@ -9,6 +10,10 @@ var maochao='/maochao/';
     var rows = [];
     var lmdataAll = [];
     var province = [],city = [],district = [];
+    var sort = {
+        field:'',
+        sorting:''
+    };
     function currentMonth(time){
         if(time){
             return time;
@@ -84,8 +89,10 @@ var maochao='/maochao/';
             pageSize: params.limit,   //页面大小
             pageNumber: (params.offset / params.limit) + 1,  //页码
             classId : $category.attr('data-pid'),
-            date:time[0]+time[1],
-            channel : $cancalDitch1.val()
+            dataDate:time[0]+time[1],
+            channel : $cancalDitch1.val(),
+            sort:sort.field,
+            direction:sort.sorting//升序  asc  降序 desc
         };
     };
 
@@ -100,7 +107,7 @@ var maochao='/maochao/';
 
     wrapObj.changeTable = mainTable;
     //主表
-    function mainTable(){
+    function mainTable(fn,field){
         $mainTable.bootstrapTable('destroy');
         $mainTable.bootstrapTable({
           url: maochao + "market/listMarketData",
@@ -127,12 +134,12 @@ var maochao='/maochao/';
           columns: [
             {
                 field:'brand_name', 
-                title:'品牌名称',
+                title:'品牌名称'+btnStr,
                 align:'center',
                 valign:'middle'
             },{
                 field:'uv_rank_no',
-                title:'排名',
+                title:'排名'+btnStr,
                 formatter :function(value, row, index){
                     return row.uv_rank_no?row.uv_rank_no:0;
                 },
@@ -140,7 +147,7 @@ var maochao='/maochao/';
                 valign:'middle'
             },{
                 field:'cycle_cqc',
-                title:'排名升降',
+                title:'排名升降'+btnStr,
                 formatter :function(value, row, index,data){
                   if(row.cycle_cqc>0){
                     return "上升"+row.cycle_cqc+"名";
@@ -154,31 +161,34 @@ var maochao='/maochao/';
                 align:'center',
                 valign:'middle'
             },{
-                field:'trade_index',
-                title:'交易指数',
+                field:'sale',
+                title:'交易额'+btnStr,
                 align:'center',
                 valign:'middle'
             },{
                 field:'trade_index_percent',
-                title:'交易增长幅度',
+                title:'交易增长幅度'+btnStr,
+                formatter :function(value, row, index,data){
+                   return  (Number(row.trade_index_percent)*100).toFixed(2)+'%';
+                },
                 align:'center',
                 valign:'middle'
             },{
               field:'pay_rate_index',
-              title:'支付转化指标',
+              title:'支付转化指数'+btnStr,
               align:'center',
               valign:'middle'
             },{
-              field:'',
-              title:'流量指数',
+              field:'uv_index',
+              title:'流量指数'+btnStr,
               formatter :function(value, row, index,data){
                   return row.uv_index?row.uv_index:'0';
               },
               align:'center',
               valign:'middle'
             },{
-              field:'',
-              title:'搜索人气',
+              field:'pvuv_hits',
+              title:'搜索人气'+btnStr,
               formatter :function(value, row, index,data){
                 return row.pvuv_hits?row.pvuv_hits:'0';
               },
@@ -199,6 +209,10 @@ var maochao='/maochao/';
         },
           onLoadSuccess:function(row){
               rows = row.rows;
+              if(fn){
+                var el = $mainTable.find('th[data-field='+ field +']');
+                fn(el);
+            }
           },
           onExpandRow: function (index, row, $detail) {
 
@@ -210,6 +224,29 @@ var maochao='/maochao/';
           }
       });
     }
+    //升序降序
+    function sortF(that){
+        that.find('.subsort').hide();
+        if(sort.sorting === 'desc'){
+            that.find('.top').show();
+        }else{
+            that.find('.bot').show();
+        }
+    }
+    $mainTable.on('click','th',function(){
+        var _this = $(this),
+            field = _this.attr('data-field');
+        if(field === 'brand_name' || field === 'uv_rank_no' || field === 'cycle_cqc' || field === 'sale' || field === 'trade_index_percent' || field === 'pay_rate_index' || field === 'uv_index' || field === 'pvuv_hits'){
+            $('.subsort').show();
+            if(sort.field && sort.field === field){
+                sort.sorting = sort.sorting === 'asc'? 'desc' : 'asc';
+            }else{
+                sort.field = field;
+                sort.sorting = 'desc';
+            }
+            mainTable(sortF,field);
+        }
+    });
     //销量占比处理
     function allnumber(data,sale){
         var num1 = 0;
@@ -465,12 +502,14 @@ var maochao='/maochao/';
                 }
             }
         }
+        console.log(dateArry);
         return dateArry;
     }
     
     //数据处理
     //数据处理
     function showData(datashow,timeData){
+        console.log(datashow); 
         var data1 = new Array(), //交易指数
             data2 = new Array(), //交易增长指数
             data3 = new Array(), //支付转化指数
@@ -493,11 +532,11 @@ var maochao='/maochao/';
             data4.push({'time':timeData[j],value:0});
             data5.push({'time':timeData[j],value:0});
         }
-        data1 = heavy1(data1);
-        data2 = heavy1(data2);
-        data3 = heavy1(data3);
-        data4 = heavy1(data4);
-        data5 = heavy1(data5);
+        data1 = heavy1(data1,'num');
+        data2 = heavy1(data2,'pct');
+        data3 = heavy1(data3,'num');
+        data4 = heavy1(data4,'num');
+        data5 = heavy1(data5,'num');
 
         
         var mychartsale= echarts.init(document.getElementById('main'));
@@ -506,7 +545,7 @@ var maochao='/maochao/';
                 text: '折线图堆叠'
             },
             tooltip: {
-                trigger: 'axis'
+                trigger: 'axis',
             },
             legend: {
                 data:['交易指数','交易增长指数','支付转化指数','流量指数','搜索人气']
@@ -529,9 +568,21 @@ var maochao='/maochao/';
             },
             yAxis : [
                 {
-                    name: '数',
+                    name: '指数',
                     type : 'value',
                     scale:true,
+                },
+                {
+                    name: '百分比',
+                    type : 'value',
+                    scale:true,
+                    min: -100,
+                    max: 100,        // 计算最大值
+                    interval: 100 / 5,   //  平均分为5份
+                    axisLabel: {  
+                        show: true,    
+                        formatter: '{value} %'  
+                    }
                 }
             ],
             series: [
@@ -539,31 +590,45 @@ var maochao='/maochao/';
                     name:'交易指数',
                     type:'line',
                     stack: '',
-                    data:data1
+                    data:data1,
+                    yAxisIndex:0
                 },
                 {
                     name:'交易增长指数',
                     type:'line',
                     stack: '',
-                    data:data2
+                    data:data2,
+                    yAxisIndex:1,
+                    itemStyle: {
+                        normal: {
+                            label: {
+                                show: true,
+                                positiong: 'top',
+                                formatter: '{c}%'
+                            }
+                        }
+                    }
                 },
                 {
                     name:'支付转化指数',
                     type:'line',
                     stack: '',
-                    data:data3
+                    data:data3,
+                    yAxisIndex:0
                 },
                 {
                     name:'流量指数',
                     type:'line',
                     stack: '',
-                    data:data4
+                    data:data4,
+                    yAxisIndex:0
                 },
                 {
                     name:'搜索人气',
                     type:'line',
                     stack: '',
-                    data:data5
+                    data:data5,
+                    yAxisIndex:0
                 }
             ]
         };
@@ -575,7 +640,7 @@ var maochao='/maochao/';
     }
 
     //获取数据去重后赋值,
-    function heavy1(data){
+    function heavy1(data,data1){
         var array = new Array();
         for (var i = 0; i < data.length; i++) {
             for (var j =i+1; j <data.length; ) {
@@ -587,9 +652,16 @@ var maochao='/maochao/';
             }
         }
         //去掉时间
-        for(var m=0;m<data.length;m++){
-            array.push(data[m].value);
+        if(data1 == 'num'){
+            for(var m=0;m<data.length;m++){
+                array.push(data[m].value);
+            } 
+        }else{
+            for(var m=0;m<data.length;m++){
+                array.push(data[m].value*100);
+            }
         }
+        
         console.log(array)
         return array;
     }

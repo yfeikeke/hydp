@@ -14,6 +14,29 @@
     <style>
     .one{padding: 0 15px;line-height: 1.65;color: red;}
     .lmdata{z-index: 100;position: absolute;top: 52px;left: 186px;display: none;}
+        #mainTable tr td:first-child{vertical-align: middle;text-align: center;}
+        .sort{display:inline-block;vertical-align: middle;}
+        .sort .top{display:block;border:5px solid transparent;border-top:5px solid #333;}
+        .sort .bot{display:block;border:5px solid transparent;border-bottom:5px solid #333;margin-bottom:2px;}
+        th[data-field=brand_name]{cursor: pointer;}
+        th[data-field=uv_rank_no]{cursor: pointer;}
+        th[data-field=cycle_cqc]{cursor: pointer;}
+        th[data-field=sale]{cursor: pointer;}
+        th[data-field=trade_index_percent]{cursor: pointer;}
+        th[data-field=pay_rate_index]{cursor: pointer;}
+        th[data-field=uv_index]{cursor: pointer;}
+        th[data-field=pvuv_hits]{cursor: pointer;}
+        .one{
+            padding: 0 15px; 
+            line-height: 1.65;
+            color: red;
+        }
+        .zy{position:fixed;top:20%;width:40px;height:250px;
+            background:#000;font-size:50px;text-align:center;
+            line-height:250px;border-radius: 4px;opacity: 0.2;cursor: pointer;color:#fff;z-index: 1000;}
+        .zy:hover{opacity: 0.6;}
+        .zyz{left:5px;}
+        .zyy{right:5px;}
     </style>
 </head>
 <body>
@@ -107,6 +130,6 @@
 <script src="../../survey/js/common.js" ></script>
 <script src="http://echarts.baidu.com/gallery/vendors/echarts/echarts.min.js"></script>
 <script src="../js/newRepleishment/repleishCommon.js?rev=ce506c6c3f798d35b259b50a157f32c6"></script>
-<script src="../js/hydp/brand.js?rev=d055085ef8e50284090165fc53b1d3c1"></script>
+<script src="../js/hydp/brand.js?rev=135fa2830cd3f5acb43dcf13c79100a0"></script>
 </body>
 </html>

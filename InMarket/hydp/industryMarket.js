@@ -3,6 +3,183 @@ var wrapObj = {
 };
 var maochao='/maochao/survey/';
 (function(){
+    $(function(){
+        var DATAPICKERAPI = {
+          // 默认input显示当前月,自己获取后填充
+          activeMonthRange: function () {
+            return {
+              begin: moment().set({ 'date': 1, 'hour': 0, 'minute': 0, 'second': 0 }).format('YYYY-MM-DD HH:mm:ss'),
+              end: moment().set({ 'hour': 23, 'minute': 59, 'second': 59 }).format('YYYY-MM-DD HH:mm:ss')
+            }
+          },
+          shortcutMonth: function () {
+            // 当月
+            var nowDay = moment().get('date');
+            var prevMonthFirstDay = moment().subtract(1, 'months').set({ 'date': 1 });
+            var prevMonthDay = moment().diff(prevMonthFirstDay, 'days');
+            return {
+              now: '-' + nowDay + ',0',
+              prev: '-' + prevMonthDay + ',-' + nowDay
+            }
+          },
+          // 注意为函数：快捷选项option:只能同一个月份内的
+          rangeMonthShortcutOption1: function () {
+            var result = DATAPICKERAPI.shortcutMonth();
+            return [{
+              name: '昨天',
+              day: '-1,-1',
+              time: '00:00:00,23:59:59'
+            }, {
+              name: '这一月',
+              day: result.now,
+              time: '00:00:00,'
+            }, {
+              name: '上一月',
+              day: result.prev,
+              time: '00:00:00,23:59:59'
+            }];
+          },
+          // 快捷选项option
+          rangeShortcutOption1: [{
+            name: '最近一周',
+            day: '-7,0'
+          }, {
+            name: '最近一个月',
+            day: '-30,0'
+          }, {
+            name: '最近三个月',
+            day: '-90, 0'
+          }],
+          singleShortcutOptions1: [{
+            name: '今天',
+            day: '0'
+          }, {
+            name: '昨天',
+            day: '-1',
+            time: '00:00:00'
+          }, {
+            name: '一周前',
+            day: '-7'
+          }]
+        };
+        //十分秒年月日单个
+        $('.J-datepicker').datePicker({
+        hasShortcut:true,
+        min:'2018-01-01 04:00:00',
+        max:'2019-04-29 20:59:59',
+        shortcutOptions:[{
+            name: '今天',
+            day: '0'
+        }, {
+            name: '昨天',
+            day: '-1',
+            time: '00:00:00'
+        }, {
+            name: '一周前',
+            day: '-7'
+        }],
+        hide:function(){
+            console.info(this)
+        }
+        });
+        
+        //年月日单个
+        $('.J-datepicker-day').datePicker({
+        hasShortcut: true,
+        format:'YYYY-MM-DD',
+        shortcutOptions: [{
+            name: '今天',
+            day: '0'
+        }, {
+            name: '昨天',
+            day: '-1'
+        }, {
+            name: '一周前',
+            day: '-7'
+        }]
+        });
+        
+        //年月日范围
+        $('.J-datepicker-range-day').datePicker({
+        hasShortcut: true,
+        format: 'YYYY-MM-DD',
+        isRange: true,
+        shortcutOptions: DATAPICKERAPI.rangeShortcutOption1
+        });
+    
+        //十分年月日单个
+        $('.J-datepickerTime-single').datePicker({
+        format: 'YYYY-MM-DD HH:mm'
+        });
+        
+        //十分年月日范围
+        $('.J-datepickerTime-range').datePicker({
+        format: 'YYYY-MM-DD HH:mm',
+        isRange: true
+        });
+        
+        //十分秒年月日范围，包含最大最小值
+        $('.J-datepicker-range').datePicker({
+        hasShortcut: true,
+        min: '2018-01-01 06:00:00',
+        max: '2019-04-29 20:59:59',
+        isRange: true,
+        shortcutOptions: [{
+            name: '昨天',
+            day: '-1,-1',
+            time: '00:00:00,23:59:59'
+        },{
+            name: '最近一周',
+            day: '-7,0',
+            time:'00:00:00,'
+        }, {
+            name: '最近一个月',
+            day: '-30,0',
+            time: '00:00:00,'
+        }, {
+            name: '最近三个月',
+            day: '-90, 0',
+            time: '00:00:00,'
+        }],
+        hide: function () {
+            console.info(this.$input.eq(0).val(), this.$input.eq(1).val())
+        }
+        });
+        //十分秒年月日范围，限制只能选择同一月，比如2018-10-01到2018-10-30
+        $('.J-datepicker-range-betweenMonth').datePicker({
+        isRange: true,
+        between:'month',
+        hasShortcut: true,
+        shortcutOptions: DATAPICKERAPI.rangeMonthShortcutOption1()
+        });
+        
+        //十分秒年月日范围，限制开始结束相隔天数小于30天
+        $('.J-datepicker-range-between30').datePicker({
+        isRange: true,
+        between: 30
+        });
+        //选择年
+        $('.J-yearPicker-single').datePicker({
+        format: 'YYYY',
+        min: '2018',
+        max: '2020'
+        });
+        
+        //年月单个
+        $('.J-yearMonthPicker-single').datePicker({
+        format: 'YYYY-MM',
+        min: '',
+        max: '',
+        hide: function () {
+            if($('body').hasClass('modal-open')){
+                betweenMonth();
+            }else{
+                mainTable();
+            }
+            
+        }
+        });
+    });
     var $cancalDitch1 = $('#cancalGoodsDitch1'),$createStart = $('#createStart'),$category = $('#category');
     var $mainTable = $('#mainTable');
     var ditch = 'maochao';
@@ -15,7 +192,11 @@ var maochao='/maochao/survey/';
         }else{
             var date = new Date();
             var year = date.getFullYear(); 
-            var mon = date.getMonth();
+            var mon = date.getMonth()+1;
+            if(mon == 1){
+                year = year-1;
+                mon = 12;
+            }
             mon = mon>=10?mon:'0'+mon;
             return year+'-'+mon;
         }
@@ -25,12 +206,16 @@ var maochao='/maochao/survey/';
         var date = new Date();
         var year = date.getFullYear(); 
         var mon = date.getMonth()+1;
-        var mon1 = date.getMonth();
+        var mon1 = date.getMonth()+1;
         mon = mon>=10?mon:'0'+mon;
         mon1 = mon1>=10?mon1:'0'+mon1;
         if(data == 1){
             return year-1+'-'+mon;
         }else{
+            if(mon1 == 1){
+                year = year-1;
+                mon1 = 12;
+            }
             return year+'-'+mon1;
         }
        
@@ -130,9 +315,11 @@ var maochao='/maochao/survey/';
                     }
                     //赋值处理求百分比
                     for(var i=0;i<data.length;i++){
-                        array.push({cid:data[i].cid,index2:data[i].index2,index2pce:(Number(data[i].index2)/index2All*100).toFixed(2),index9:data[i].index9,index9pec:(Number(data[i].index9)/index9All*100).toFixed(2),name:data[i].name});
+                        array.push({cid:data[i].cid,index2:data[i].index2,index2pce:(Number(data[i].index2)/index2All*100).toFixed(2),index9:Number(data[i].index9),index9pec:(Number(data[i].index9)/index9All*100).toFixed(2),name:data[i].name});
                     }
                 }
+                
+                array.sort(compare('index9'));
                 console.log(array);
 
                 return array;
@@ -148,7 +335,7 @@ var maochao='/maochao/survey/';
                     field:'index2',
                     title:'销量',
                     formatter :function(value, row, index){
-                        return toThousands(row.index2,2);
+                        return toThousands(row.index2,0);
                     },
                     align:'center',
                     valign:'middle',
@@ -205,6 +392,14 @@ var maochao='/maochao/survey/';
                 $mainTable.find('th[data-field=goodsName]').css('min-width','150px')
             }
         });
+    }
+    //默认销售额降序
+    function compare(property){
+        return function(a,b){
+            var value1 = a[property];
+            var value2 = b[property];
+            return value2 - value1;
+        }
     }
     //百分比排序处理
     function percentSort(a, b) {
@@ -356,8 +551,8 @@ var maochao='/maochao/survey/';
         }
         echartsShow(data);
     });
-
-    $('#start').on('change',function(){
+    //月范围
+    function betweenMonth(){
         var time = $('#start').val().split('-'),time1 = $('#end').val().split('-');
         var data = {
             cid :  $('.songcid').html(),
@@ -367,19 +562,7 @@ var maochao='/maochao/survey/';
             ditch : $('#ditchecharts').val()
         }
         echartsShow(data);
-    });
-    
-    $('#end').on('change',function(){
-        var time = $('#start').val().split('-'),time1 = $('#end').val().split('-');
-        var data = {
-            cid : cid,
-            pid : pid,
-            date1 :  time[0]+time[1],
-            date2 :  time1[0]+time1[1],
-            ditch : $('#ditchecharts').val()
-        }
-        echartsShow(data);
-    });
+    }
 
     //趋势图数据请求
     function echartsShow(data){
@@ -527,43 +710,47 @@ var maochao='/maochao/survey/';
                     name:'销量',
                     type:'line',
                     stack: '',
-                    data:data3
+                    data:data3,
+                    yAxisIndex:0
                 },
                 {
                     name:'销售额',
                     type:'line',
                     stack: '',
                     data:data4,
+                    yAxisIndex:0
                 },
                 {
                     name:'销量占比',
                     type:'line',
                     stack: '',
                     data:data5,
-                    // itemStyle: {
-                    //     normal: {
-                    //         label: {
-                    //             show: true,
-                    //             positiong: 'top',
-                    //             formatter: '{c}%'
-                    //         }
-                    //     }
-                    // }
+                    itemStyle: {
+                        normal: {
+                            label: {
+                                show: true,
+                                positiong: 'top',
+                                formatter: '{c}%'
+                            }
+                        }
+                    },
+                    yAxisIndex:1
                 },
                 {
                     name:'销售额占比',
                     type:'line',
                     stack: '',
                     data:data6,
-                    // itemStyle: {
-                    //     normal: {
-                    //         label: {
-                    //             show: true,
-                    //             positiong: 'top',
-                    //             formatter: '{c}%'
-                    //         }
-                    //     }
-                    // }
+                    itemStyle: {
+                        normal: {
+                            label: {
+                                show: true,
+                                positiong: 'top',
+                                formatter: '{c}%'
+                            }
+                        }
+                    },
+                    yAxisIndex:1
                 }
             ]
         };
@@ -602,7 +789,11 @@ var maochao='/maochao/survey/';
                 if(i==j){
                     var num = data2[i]/data1[j];
                     if(!isNaN(num)){
-                        array.push(num*100);
+                       if(num == "Infinity"){
+                            array.push(0);
+                        }else{
+                            array.push((num*100).toFixed(2));
+                        }
                     }else{
                         array.push(0);
                     }

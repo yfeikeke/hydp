@@ -4,6 +4,183 @@ var wrapObj = {
 var maochao='/maochao/';
 var btnStr = '<div class="sort"><i class="bot subsort"></i><i class="top subsort"></i></div>';
 (function(){
+    $(function(){
+        var DATAPICKERAPI = {
+          // 默认input显示当前月,自己获取后填充
+          activeMonthRange: function () {
+            return {
+              begin: moment().set({ 'date': 1, 'hour': 0, 'minute': 0, 'second': 0 }).format('YYYY-MM-DD HH:mm:ss'),
+              end: moment().set({ 'hour': 23, 'minute': 59, 'second': 59 }).format('YYYY-MM-DD HH:mm:ss')
+            }
+          },
+          shortcutMonth: function () {
+            // 当月
+            var nowDay = moment().get('date');
+            var prevMonthFirstDay = moment().subtract(1, 'months').set({ 'date': 1 });
+            var prevMonthDay = moment().diff(prevMonthFirstDay, 'days');
+            return {
+              now: '-' + nowDay + ',0',
+              prev: '-' + prevMonthDay + ',-' + nowDay
+            }
+          },
+          // 注意为函数：快捷选项option:只能同一个月份内的
+          rangeMonthShortcutOption1: function () {
+            var result = DATAPICKERAPI.shortcutMonth();
+            return [{
+              name: '昨天',
+              day: '-1,-1',
+              time: '00:00:00,23:59:59'
+            }, {
+              name: '这一月',
+              day: result.now,
+              time: '00:00:00,'
+            }, {
+              name: '上一月',
+              day: result.prev,
+              time: '00:00:00,23:59:59'
+            }];
+          },
+          // 快捷选项option
+          rangeShortcutOption1: [{
+            name: '最近一周',
+            day: '-7,0'
+          }, {
+            name: '最近一个月',
+            day: '-30,0'
+          }, {
+            name: '最近三个月',
+            day: '-90, 0'
+          }],
+          singleShortcutOptions1: [{
+            name: '今天',
+            day: '0'
+          }, {
+            name: '昨天',
+            day: '-1',
+            time: '00:00:00'
+          }, {
+            name: '一周前',
+            day: '-7'
+          }]
+        };
+        //十分秒年月日单个
+        $('.J-datepicker').datePicker({
+        hasShortcut:true,
+        min:'2018-01-01 04:00:00',
+        max:'2019-04-29 20:59:59',
+        shortcutOptions:[{
+            name: '今天',
+            day: '0'
+        }, {
+            name: '昨天',
+            day: '-1',
+            time: '00:00:00'
+        }, {
+            name: '一周前',
+            day: '-7'
+        }],
+        hide:function(){
+            console.info(this)
+        }
+        });
+        
+        //年月日单个
+        $('.J-datepicker-day').datePicker({
+        hasShortcut: true,
+        format:'YYYY-MM-DD',
+        shortcutOptions: [{
+            name: '今天',
+            day: '0'
+        }, {
+            name: '昨天',
+            day: '-1'
+        }, {
+            name: '一周前',
+            day: '-7'
+        }]
+        });
+        
+        //年月日范围
+        $('.J-datepicker-range-day').datePicker({
+        hasShortcut: true,
+        format: 'YYYY-MM-DD',
+        isRange: true,
+        shortcutOptions: DATAPICKERAPI.rangeShortcutOption1
+        });
+    
+        //十分年月日单个
+        $('.J-datepickerTime-single').datePicker({
+        format: 'YYYY-MM-DD HH:mm'
+        });
+        
+        //十分年月日范围
+        $('.J-datepickerTime-range').datePicker({
+        format: 'YYYY-MM-DD HH:mm',
+        isRange: true
+        });
+        
+        //十分秒年月日范围，包含最大最小值
+        $('.J-datepicker-range').datePicker({
+        hasShortcut: true,
+        min: '2018-01-01 06:00:00',
+        max: '2019-04-29 20:59:59',
+        isRange: true,
+        shortcutOptions: [{
+            name: '昨天',
+            day: '-1,-1',
+            time: '00:00:00,23:59:59'
+        },{
+            name: '最近一周',
+            day: '-7,0',
+            time:'00:00:00,'
+        }, {
+            name: '最近一个月',
+            day: '-30,0',
+            time: '00:00:00,'
+        }, {
+            name: '最近三个月',
+            day: '-90, 0',
+            time: '00:00:00,'
+        }],
+        hide: function () {
+            console.info(this.$input.eq(0).val(), this.$input.eq(1).val())
+        }
+        });
+        //十分秒年月日范围，限制只能选择同一月，比如2018-10-01到2018-10-30
+        $('.J-datepicker-range-betweenMonth').datePicker({
+        isRange: true,
+        between:'month',
+        hasShortcut: true,
+        shortcutOptions: DATAPICKERAPI.rangeMonthShortcutOption1()
+        });
+        
+        //十分秒年月日范围，限制开始结束相隔天数小于30天
+        $('.J-datepicker-range-between30').datePicker({
+        isRange: true,
+        between: 30
+        });
+        //选择年
+        $('.J-yearPicker-single').datePicker({
+        format: 'YYYY',
+        min: '2018',
+        max: '2020'
+        });
+        
+        //年月单个
+        $('.J-yearMonthPicker-single').datePicker({
+        format: 'YYYY-MM',
+        min: '',
+        max: '',
+        hide: function () {
+            if($('body').hasClass('modal-open')){
+                betweenMonth();
+            }else{
+                mainTable();
+            }
+            
+        }
+        });
+    });
     var $cancalDitch1 = $('#cancalGoodsDitch1'),$createStart = $('#createStart'),$category = $('#category');
     var $mainTable = $('#mainTable');
     var ditch = 'maochao';
@@ -20,7 +197,11 @@ var btnStr = '<div class="sort"><i class="bot subsort"></i><i class="top subsort
         }else{
             var date = new Date();
             var year = date.getFullYear(); 
-            var mon = date.getMonth();
+            var mon = date.getMonth()+1;
+            if(mon == 1){
+                year = year-1;
+                mon = 12;
+            }
             mon = mon>=10?mon:'0'+mon;
             return year+'-'+mon;
         }
@@ -30,12 +211,16 @@ var btnStr = '<div class="sort"><i class="bot subsort"></i><i class="top subsort
         var date = new Date();
         var year = date.getFullYear(); 
         var mon = date.getMonth()+1;
-        var mon1 = date.getMonth();
+        var mon1 = date.getMonth()+1;
         mon = mon>=10?mon:'0'+mon;
         mon1 = mon1>=10?mon1:'0'+mon1;
         if(data == 1){
             return year-1+'-'+mon;
         }else{
+            if(mon1 == 1){
+                year = year-1;
+                mon1 = 12;
+            }
             return year+'-'+mon1;
         }
        
@@ -393,28 +578,19 @@ var btnStr = '<div class="sort"><i class="bot subsort"></i><i class="top subsort
         }
         showecharts(data);
     });
-    $('#start').on('change',function(){
-        var time = $('#start').val().split('-'),time1 = $('#end').val().split('-');
-        var data = {
-          id :   $('.songpid').html(),
-          name :  $('.songcid').html(),
-          startMonth :  time[0]+time[1],
-          endMonth :  time1[0]+time1[1],
-          channel : $('#ditchecharts').val()
-        }
-        showecharts(data);
-    });
-    $('#end').on('change',function(){
-        var time = $('#start').val().split('-'),time1 = $('#end').val().split('-');
-        var data = {
-            id :   $('.songpid').html(),
-            name :  $('.songcid').html(),
-            startMonth :  time[0]+time[1],
-            endMonth :  time1[0]+time1[1],
-            channel : $('#ditchecharts').val()
-        }
-        showecharts(data);
-    });
+
+    //月范围
+    function betweenMonth(){
+    var time = $('#start').val().split('-'),time1 = $('#end').val().split('-');
+    var data = {
+        cid :  $('.songcid').html(),
+        pid :  $('.songpid').html(),
+        date1 :  time[0]+time[1],
+        date2 :  time1[0]+time1[1],
+        ditch : $('#ditchecharts').val()
+    }
+    showecharts(data);
+    }
 
     //趋势图数据请求
     function showecharts(data){

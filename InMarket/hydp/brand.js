@@ -4,6 +4,183 @@ var wrapObj = {
 var btnStr = '<div class="sort"><i class="bot subsort"></i><i class="top subsort"></i></div>';
 var maochao='/maochao/';
 (function(){
+    $(function(){
+        var DATAPICKERAPI = {
+          // 默认input显示当前月,自己获取后填充
+          activeMonthRange: function () {
+            return {
+              begin: moment().set({ 'date': 1, 'hour': 0, 'minute': 0, 'second': 0 }).format('YYYY-MM-DD HH:mm:ss'),
+              end: moment().set({ 'hour': 23, 'minute': 59, 'second': 59 }).format('YYYY-MM-DD HH:mm:ss')
+            }
+          },
+          shortcutMonth: function () {
+            // 当月
+            var nowDay = moment().get('date');
+            var prevMonthFirstDay = moment().subtract(1, 'months').set({ 'date': 1 });
+            var prevMonthDay = moment().diff(prevMonthFirstDay, 'days');
+            return {
+              now: '-' + nowDay + ',0',
+              prev: '-' + prevMonthDay + ',-' + nowDay
+            }
+          },
+          // 注意为函数：快捷选项option:只能同一个月份内的
+          rangeMonthShortcutOption1: function () {
+            var result = DATAPICKERAPI.shortcutMonth();
+            return [{
+              name: '昨天',
+              day: '-1,-1',
+              time: '00:00:00,23:59:59'
+            }, {
+              name: '这一月',
+              day: result.now,
+              time: '00:00:00,'
+            }, {
+              name: '上一月',
+              day: result.prev,
+              time: '00:00:00,23:59:59'
+            }];
+          },
+          // 快捷选项option
+          rangeShortcutOption1: [{
+            name: '最近一周',
+            day: '-7,0'
+          }, {
+            name: '最近一个月',
+            day: '-30,0'
+          }, {
+            name: '最近三个月',
+            day: '-90, 0'
+          }],
+          singleShortcutOptions1: [{
+            name: '今天',
+            day: '0'
+          }, {
+            name: '昨天',
+            day: '-1',
+            time: '00:00:00'
+          }, {
+            name: '一周前',
+            day: '-7'
+          }]
+        };
+        //十分秒年月日单个
+        $('.J-datepicker').datePicker({
+        hasShortcut:true,
+        min:'2018-01-01 04:00:00',
+        max:'2019-04-29 20:59:59',
+        shortcutOptions:[{
+            name: '今天',
+            day: '0'
+        }, {
+            name: '昨天',
+            day: '-1',
+            time: '00:00:00'
+        }, {
+            name: '一周前',
+            day: '-7'
+        }],
+        hide:function(){
+            console.info(this)
+        }
+        });
+        
+        //年月日单个
+        $('.J-datepicker-day').datePicker({
+        hasShortcut: true,
+        format:'YYYY-MM-DD',
+        shortcutOptions: [{
+            name: '今天',
+            day: '0'
+        }, {
+            name: '昨天',
+            day: '-1'
+        }, {
+            name: '一周前',
+            day: '-7'
+        }]
+        });
+        
+        //年月日范围
+        $('.J-datepicker-range-day').datePicker({
+        hasShortcut: true,
+        format: 'YYYY-MM-DD',
+        isRange: true,
+        shortcutOptions: DATAPICKERAPI.rangeShortcutOption1
+        });
+    
+        //十分年月日单个
+        $('.J-datepickerTime-single').datePicker({
+        format: 'YYYY-MM-DD HH:mm'
+        });
+        
+        //十分年月日范围
+        $('.J-datepickerTime-range').datePicker({
+        format: 'YYYY-MM-DD HH:mm',
+        isRange: true
+        });
+        
+        //十分秒年月日范围，包含最大最小值
+        $('.J-datepicker-range').datePicker({
+        hasShortcut: true,
+        min: '2018-01-01 06:00:00',
+        max: '2019-04-29 20:59:59',
+        isRange: true,
+        shortcutOptions: [{
+            name: '昨天',
+            day: '-1,-1',
+            time: '00:00:00,23:59:59'
+        },{
+            name: '最近一周',
+            day: '-7,0',
+            time:'00:00:00,'
+        }, {
+            name: '最近一个月',
+            day: '-30,0',
+            time: '00:00:00,'
+        }, {
+            name: '最近三个月',
+            day: '-90, 0',
+            time: '00:00:00,'
+        }],
+        hide: function () {
+            console.info(this.$input.eq(0).val(), this.$input.eq(1).val())
+        }
+        });
+        //十分秒年月日范围，限制只能选择同一月，比如2018-10-01到2018-10-30
+        $('.J-datepicker-range-betweenMonth').datePicker({
+        isRange: true,
+        between:'month',
+        hasShortcut: true,
+        shortcutOptions: DATAPICKERAPI.rangeMonthShortcutOption1()
+        });
+        
+        //十分秒年月日范围，限制开始结束相隔天数小于30天
+        $('.J-datepicker-range-between30').datePicker({
+        isRange: true,
+        between: 30
+        });
+        //选择年
+        $('.J-yearPicker-single').datePicker({
+        format: 'YYYY',
+        min: '2018',
+        max: '2020'
+        });
+        
+        //年月单个
+        $('.J-yearMonthPicker-single').datePicker({
+        format: 'YYYY-MM',
+        min: '',
+        max: '',
+        hide: function () {
+            if($('body').hasClass('modal-open')){
+                betweenMonth();
+            }else{
+                mainTable();
+            }
+            
+        }
+        });
+    });
     var $cancalDitch1 = $('#cancalGoodsDitch1'),$createStart = $('#createStart'),$category = $('#category');
     var $mainTable = $('#mainTable');
     var ditch = 'maochao';
@@ -20,22 +197,31 @@ var maochao='/maochao/';
         }else{
             var date = new Date();
             var year = date.getFullYear(); 
-            var mon = date.getMonth();
+            var mon = date.getMonth()+1;
+            if(mon == 1){
+                year = year-1;
+                mon = 12;
+            }
             mon = mon>=10?mon:'0'+mon;
             return year+'-'+mon;
         }
     }
+    
     //时间段处理
     function currentyear(data){
         var date = new Date();
         var year = date.getFullYear(); 
         var mon = date.getMonth()+1;
-        var mon1 = date.getMonth();
+        var mon1 = date.getMonth()+1;
         mon = mon>=10?mon:'0'+mon;
         mon1 = mon1>=10?mon1:'0'+mon1;
         if(data == 1){
             return year-1+'-'+mon;
         }else{
+            if(mon1 == 1){
+                year = year-1;
+                mon1 = 12;
+            }
             return year+'-'+mon1;
         }
        
@@ -138,10 +324,10 @@ var maochao='/maochao/';
                 align:'center',
                 valign:'middle'
             },{
-                field:'uv_rank_no',
+                field:'sale_rank_no',
                 title:'排名'+btnStr,
                 formatter :function(value, row, index){
-                    return row.uv_rank_no?row.uv_rank_no:0;
+                    return row.sale_rank_no?row.sale_rank_no:0;
                 },
                 align:'center',
                 valign:'middle'
@@ -150,13 +336,12 @@ var maochao='/maochao/';
                 title:'排名升降'+btnStr,
                 formatter :function(value, row, index,data){
                   if(row.cycle_cqc>0){
-                    return "上升"+row.cycle_cqc+"名";
+                    return "<span class='glyphicon glyphicon-arrow-up' style='color: #00f900;'>"+row.cycle_cqc+"</span>";
                   }else if(row.cycle_cqc<0){
-                    return "下降"+Math.abs(row.cycle_cqc)+"名";
+                    return "<span class='glyphicon glyphicon-arrow-down' style='color: #f93900;'>"+Math.abs(row.cycle_cqc)+"</span>";
                   }else{
                     return "保持";
                   }
-                   
                 },
                 align:'center',
                 valign:'middle'
@@ -236,7 +421,7 @@ var maochao='/maochao/';
     $mainTable.on('click','th',function(){
         var _this = $(this),
             field = _this.attr('data-field');
-        if(field === 'brand_name' || field === 'uv_rank_no' || field === 'cycle_cqc' || field === 'sale' || field === 'trade_index_percent' || field === 'pay_rate_index' || field === 'uv_index' || field === 'pvuv_hits'){
+        if(field === 'brand_name' || field === 'sale_rank_no' || field === 'cycle_cqc' || field === 'sale' || field === 'trade_index_percent' || field === 'pay_rate_index' || field === 'uv_index' || field === 'pvuv_hits'){
             $('.subsort').show();
             if(sort.field && sort.field === field){
                 sort.sorting = sort.sorting === 'asc'? 'desc' : 'asc';
@@ -430,7 +615,7 @@ var maochao='/maochao/';
         }
         showecharts(data);
     });
-    $('#start').on('change',function(){
+    function betweenMonth(){
         var time = $('#start').val().split('-'),time1 = $('#end').val().split('-');
         var data = {
             pageSize: 1000,   //页面大小
@@ -442,20 +627,7 @@ var maochao='/maochao/';
             channel : $('#ditchecharts').val()
         }
         showecharts(data);
-    });
-    $('#end').on('change',function(){
-        var time = $('#start').val().split('-'),time1 = $('#end').val().split('-');
-        var data = {
-            pageSize: 1000,   //页面大小
-            pageNumber: 1,  //页码
-            classId :   $('.songpid').html(),
-            brandId :  $('.songcid').html(),
-            startMonth :  time[0]+time[1],
-            endMonth :  time1[0]+time1[1],
-            channel : $('#ditchecharts').val()
-        }
-        showecharts(data);
-    });
+    }
 
     //趋势图数据请求
     function showecharts(data){
@@ -502,14 +674,12 @@ var maochao='/maochao/';
                 }
             }
         }
-        console.log(dateArry);
         return dateArry;
     }
     
     //数据处理
     //数据处理
     function showData(datashow,timeData){
-        console.log(datashow); 
         var data1 = new Array(), //交易指数
             data2 = new Array(), //交易增长指数
             data3 = new Array(), //支付转化指数
@@ -532,13 +702,16 @@ var maochao='/maochao/';
             data4.push({'time':timeData[j],value:0});
             data5.push({'time':timeData[j],value:0});
         }
+        //获取数组最大值、最小值
+      
         data1 = heavy1(data1,'num');
         data2 = heavy1(data2,'pct');
         data3 = heavy1(data3,'num');
         data4 = heavy1(data4,'num');
         data5 = heavy1(data5,'num');
+        var maxNum = Math.ceil(Math.max.apply(null, data2)),
+            minNum = Math.ceil(Math.min.apply(null, data2));
 
-        
         var mychartsale= echarts.init(document.getElementById('main'));
         option = {
             title: {
@@ -548,7 +721,7 @@ var maochao='/maochao/';
                 trigger: 'axis',
             },
             legend: {
-                data:['交易指数','交易增长指数','支付转化指数','流量指数','搜索人气']
+                data:['交易指数','交易增长幅度','支付转化指数','流量指数','搜索人气']
             },
             grid: {
                 left: '3%',
@@ -576,9 +749,6 @@ var maochao='/maochao/';
                     name: '百分比',
                     type : 'value',
                     scale:true,
-                    min: -100,
-                    max: 100,        // 计算最大值
-                    interval: 100 / 5,   //  平均分为5份
                     axisLabel: {  
                         show: true,    
                         formatter: '{value} %'  
@@ -594,7 +764,7 @@ var maochao='/maochao/';
                     yAxisIndex:0
                 },
                 {
-                    name:'交易增长指数',
+                    name:'交易增长幅度',
                     type:'line',
                     stack: '',
                     data:data2,
@@ -658,11 +828,9 @@ var maochao='/maochao/';
             } 
         }else{
             for(var m=0;m<data.length;m++){
-                array.push(data[m].value*100);
+                array.push((data[m].value*100).toFixed(2));
             }
         }
-        
-        console.log(array)
         return array;
     }
 })();
